@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up Page</title>
+    <!-- Bootstrap CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("image2.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+
+<body style="font-family: 'Poppins', sans-serif;">
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="card p-4 shadow-lg" style="width: 400px;" id="authCard">
+            <h1 class="text-center text-success" id="formTitle">Sign Up</h1>
+            <hr>
+            <form onsubmit="return signUp(event)" id="authForm">
+                <div class="mb-3" id="nameField">
+                    <label class="form-label text-success" for="name"><i class="fa-solid fa-user me-2"></i>Name</label>
+                    <input type="text" class="form-control" id="name" placeholder="Enter your name">
+                    <div id="nameError" class="text-danger"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-success" for="email"><i class="fa-solid fa-at me-2"></i>Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                    <div id="emailError" class="text-danger"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-success" for="password"><i
+                            class="fa-solid fa-lock me-2"></i>Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Enter your password"
+                        required>
+                    <div id="passwordError" class="text-danger"></div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success" id="submitButton">Sign Up</button>
+                    <button type="button" class="btn btn-outline-secondary" id="toggleButton"
+                        onclick="toggleForm()">Sign In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let isSignUp = true;
+
+        function toggleForm() {
+            isSignUp = !isSignUp;
+
+            if (isSignUp) {
+                document.getElementById('formTitle').textContent = 'Sign Up';
+                document.getElementById('submitButton').textContent = 'Sign Up';
+                document.getElementById('nameField').style.display = 'block';
+                document.getElementById('toggleButton').textContent = 'Sign In';
+                document.getElementById('authForm').onsubmit = signUp;
+                document.title = 'Sign Up Page';
+            } else {
+                document.getElementById('formTitle').textContent = 'Sign In';
+                document.getElementById('submitButton').textContent = 'Sign In';
+                document.getElementById('nameField').style.display = 'none';
+                document.getElementById('toggleButton').textContent = 'Sign Up';
+                document.getElementById('authForm').onsubmit = signIn;
+                document.title = 'Sign In Page';
+            }
+        }
+
+        function signUp(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (name === '' || email === '' || password === '') {
+                alert('Please fill in all fields');
+                return false;
+            }
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+
+            if (users.some(user => user.email === email)) {
+                alert('Email already exists. Please use a different email.');
+                return false;
+            }
+
+            const user = { name, email, password };
+            users.push(user);
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Sign up successful! Redirecting to Sign In.');
+            toggleForm();
+        }
+
+        function signIn(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+
+            const user = users.find(user => user.email === email && user.password === password);
+
+            if (user) {
+                alert('Sign in successful! Redirecting to Expense Tracker...');
+                window.location.href = 'index_exp_tra.html';
+            } else {
+                alert('Invalid email or password. Please try again.');
+            }
+        }
+    </script>
+</body>
+
+</html>

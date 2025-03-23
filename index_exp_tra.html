@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses Tracker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #f4f4f9;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            width: 90%;
+            max-width: 100%;
+            margin-top: 20px;
+
+        }
+
+        .form-section,
+        .history-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            width: 100px;
+            height: 100px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        input[type="button"],
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        input[type="button"]:hover,
+        button:hover {
+            background: #45a049;
+        }
+
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .transaction-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .budget-summary {
+            text-align: center;
+            background: #c8e6c9;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .action-buttons button {
+            margin: 0 5px;
+        }
+
+        .log-out {
+            background-color: red;
+            margin: 20px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            width: 30%;
+            max-width: 50%;
+
+        }
+
+        .log-out a {
+            text-decoration: none;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="form-section">
+            <div class="logo">
+                <img src="logo1.png" alt="Expense Tracker Logo">
+            </div>
+            <h1>Expenses Tracker</h1>
+            <h2>Income</h2>
+            <input type="text" id="incomeDesc" placeholder="Income Description">
+            <input type="number" id="incomeAmount" placeholder="Income Amount">
+            <input type="button" value="Add Income" onclick="addTransaction('income')">
+
+            <h2>Expenses</h2>
+            <input type="text" id="expenseDesc" placeholder="Expense Description">
+            <select id="category">
+                <option>Housing</option>
+                <option>Travelling</option>
+                <option>Food</option>
+                <option>Shopping</option>
+                <option>Education</option>
+            </select>
+            <input type="number" id="expenseAmount" placeholder="Expense Amount">
+            <input type="button" value="Add Expense" onclick="addTransaction('expense')">
+        </div>
+
+        <div class="history-section">
+            <h2>Transaction History</h2>
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionList"></tbody>
+            </table>
+            <div class="budget-summary">
+                <p id="totalIncome">Total Income: ₦0</p>
+                <p id="totalExpenses">Total Expenses: ₦0</p>
+                <p id="balance">Balance: ₦0</p>
+                <button onclick="clearAll()">Clear All</button>
+            </div>
+
+            <div class="log-out"><a href="index_bootstrap.html">Log Out</a></div>
+        </div>
+    </div>
+
+    <script>
+        let income = 0;
+        let expenses = 0;
+
+        function addTransaction(type) {
+            const desc = type === 'income' ? document.getElementById('incomeDesc') : document.getElementById('expenseDesc');
+            const amount = parseFloat(type === 'income' ? document.getElementById('incomeAmount').value : document.getElementById('expenseAmount').value);
+
+            if (!desc.value || isNaN(amount)) return;
+
+            const transactionList = document.getElementById('transactionList');
+            const row = document.createElement('tr');
+            const transactionType = type === 'income' ? 'Income' : 'Expense';
+
+            row.innerHTML = `
+                <td>${desc.value} (${transactionType})</td>
+                <td>₦${amount.toFixed(2)}</td>
+                <td class="action-buttons">
+                    <button onclick="editTransaction(this, '${type}', ${amount})">Edit</button>
+                    <button onclick="deleteTransaction(this, '${type}', ${amount})">Delete</button>
+                </td>
+            `;
+
+            transactionList.appendChild(row);
+
+            if (type === 'income') {
+                income += amount;
+            } else {
+                expenses += amount;
+            }
+
+            desc.value = '';
+            document.getElementById(type === 'income' ? 'incomeAmount' : 'expenseAmount').value = '';
+
+            updateSummary();
+        }
+
+        function deleteTransaction(button, type, amount) {
+            button.closest('tr').remove();
+
+            if (type === 'income') {
+                income -= amount;
+            } else {
+                expenses -= amount;
+            }
+
+            updateSummary();
+        }
+
+        function editTransaction(button, type, amount) {
+            const row = button.closest('tr');
+            const desc = row.cells[0].textContent.split(' (')[0];
+
+            document.getElementById(type === 'income' ? 'incomeDesc' : 'expenseDesc').value = desc;
+            document.getElementById(type === 'income' ? 'incomeAmount' : 'expenseAmount').value = amount;
+
+            row.remove();
+        }
+
+        function updateSummary() {
+            const balance = income - expenses;
+            document.getElementById('totalIncome').textContent = `Total Income: ₦${income.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `Total Expenses: ₦${expenses.toFixed(2)}`;
+            document.getElementById('balance').textContent = `Balance: ₦${balance.toFixed(2)}`;
+        }
+
+        function clearAll() {
+            document.getElementById('transactionList').innerHTML = '';
+            income = 0;
+            expenses = 0;
+            updateSummary();
+        }
+    </script>
+</body>
+
+</html>
